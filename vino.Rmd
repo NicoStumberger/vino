@@ -1,0 +1,185 @@
+---
+title: "Vino"
+author: "Nicolás Stumberger"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5)
+```
+
+Librerías
+```{r}
+library(tidyverse)
+```
+
+Importación de dataset
+```{r}
+Cosecha_19 <- read_delim("data/Cosecha-19.csv",
+                         ";", escape_double = FALSE, 
+                         col_types = cols(`Peso Quintales` = col_double()),
+                         locale = locale(date_names = "es",
+                                         decimal_mark = ",",
+                                         grouping_mark = "."), 
+                         trim_ws = TRUE) %>% 
+        as_tibble()
+```
+
+## EDA:
+
+3 etapas iterativas:
+
+* Pregunta
+* Viz, tidy y wrangling para responder
+* Expectativa vs realidad
+
+```{r}
+head(Cosecha_19, 5)
+```
+
+Cambio nombres de columna
+```{r}
+cosecha_19 <- Cosecha_19 %>% 
+        transmute(prov_vin = `Provincia Viñedo`,
+               dpto_vin = `Departamento Viñedo`,
+               color = Color,
+               tipo_uva = `Tipo uva`,
+               variedad = Variedad,
+               prov_bodega = `Provincia Bodega`,
+               dpto_bodega = `Departamento Bodega`,
+               anio = Año,
+               mes = Mes,
+               destino_uva = `Destino Uva`,
+               peso_quintales = `Peso Quintales`)
+
+rm(Cosecha_19)
+```
+
+```{r}
+head(cosecha_19, 5)
+```
+
+Convertir quintales a kg y toneladas
+```{r}
+cosecha_19 <-  cosecha_19 %>% 
+        mutate(kg = peso_quintales * 100,
+               ton = kg / 1000,
+               ton_MM = ton / 1000000)
+```
+
+¿Cuánto se cosecha?
+```{r}
+cosecha_19 %>% group_by(anio) %>% 
+        summarise(total = sum(ton_MM)) %>% 
+        ggplot(mapping = aes(anio, total)) +
+        geom_point() +
+        geom_line() +
+        scale_y_continuous(labels = scales::comma)
+
+```
+
+
+
+En 2018 se cosecharon 2,6 millones de toneladas
+```{r}
+cosecha_19 %>% group_by(anio) %>% 
+        summarise(sum(ton_MM)) %>% 
+        filter(anio == 2018)
+```
+
+Máximo, mínimo y promedio de los últimos años? 2018 se ubicó cerca del prom.
+```{r}
+tot_anual <- cosecha_19 %>% 
+        group_by(anio) %>% 
+        summarise(ton_MM = sum(ton_MM),
+                  cosechas = n())
+
+tot_anual <- tot_anual %>% 
+        mutate(min = min(ton_MM),
+               max = max(ton_MM),
+               prom = mean(ton_MM))
+
+sum(tot_anual$cosechas)
+```
+
+
+cantidad de cosechas por año por provincia?
+```{r}
+cosecha_19 %>% group_by(anio, prov_vin) %>% 
+        summarise(tot = sum(ton),
+                  prom = mean(ton),
+                  cosechas = n())
+```
+
+Cuántas provincias registran cosechas? 16
+
+Cuántas cosechas hay por provincia?
+```{r}
+cosecha_19 %>% filter(anio == 2018) %>% 
+        group_by(prov_vin) %>% 
+        summarise(cosechas = n()) %>% 
+        ggplot(mapping = aes(reorder(prov_vin, cosechas), cosechas)) +
+        geom_point() +
+        coord_flip()
+```
+
+
+Cuántas toneladas se cosechan por provincia?
+```{r}
+cosecha_19 %>% filter(anio == 2018) %>% 
+        group_by(anio, prov_vin) %>% 
+        summarise(tot_ton_MM = sum(ton_MM)) %>% 
+        ggplot(mapping = aes(reorder(prov_vin, tot_ton_MM), tot_ton_MM)) +
+        geom_point() +
+        coord_flip()
+```
+
+Hay 24 cosechas que no poseen provincia. Quizas tengan dpto?
+
+Comparo las cosechas por provincia de bodega y de viñedo:
+```{r}
+prov_vin <- cosecha_19 %>% group_by(prov_vin) %>% summarise(cosechas = n())
+prov_bodega <- cosecha_19 %>% group_by(prov_bodega) %>% summarise(cosechas = n())
+
+prov_bodega %>% full_join(prov_vin, by = c("prov_bodega" = "prov_vin"))
+
+```
+
+* Veo que hay provincias que registran más cosechas de bodegas y visceversa. Podría decirse que hay bodegas que "importan" cosechas desde otras provincias más de las que "exportan"? (y visceversa).
+* Este sería un interesante lead para seguir: impo y expo interprovincia de cosechas. 
+Ojo, puede que las cosechas no tengan destino "elaboración" y por eso no vayan a bodegas..
+* Todas las cosechas tienen una provincia de bodega? Quizas por eso las 24 cosechas NA
+
+Exploremos el destino de la uva..
+```{r}
+cosecha_19 %>% group_by(destino_uva) %>% 
+        summarise(ton_MM_abs = sum(ton_MM) / 17) # dividi por 17 para tener un promedio anual
+```
+
+Las cosechas que tienen provincia bodega, de dònde son? No son para consumo..
+```{r}
+cosecha_19 %>% filter(is.na(prov_bodega))
+        
+```
+Esto es curioso. QUizas se pueda utilizar ML para completar los NA...
+
+Cuàntas toneladas son los que no tienen provincia bodega?
+```{r}
+cosecha_19 %>% filter(is.na(prov_bodega)) %>% 
+        group_by(prov_bodega) %>% 
+        summarise(sum(ton))
+```
+
+Explore la composiciòn de:
+
+* provincia viñedo
+* provincia bodega
+* destino*
+* año
+
+Faltaria explorar:
+
+* Tipo de uva
+* variedad
+* mes
+ 
