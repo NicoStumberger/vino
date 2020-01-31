@@ -2,15 +2,22 @@
 title: "Vino"
 author: "Nicolás Stumberger"
 output: github_document
+date: 2020-01-30
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5)
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      fig.width = 8, fig.height = 5)
 ```
 
 Librerías
 ```{r}
 library(tidyverse)
+library(knitr) # para crear tablas html
+library(kableExtra) # también para crear tablas html con estilo
 ```
 
 Importación de dataset
@@ -59,6 +66,14 @@ rm(Cosecha_19)
 head(cosecha_19, 5)
 ```
 
+Intente armar una tabla pero se ve horrible...
+```{r}
+knitr::kable(subset(head(cosecha_19, 5)),
+             digits = 2,
+             format.args = list(decimal.mark = ",")) %>% 
+        kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
 Convertir quintales a kg y toneladas
 ```{r}
 cosecha_19 <-  cosecha_19 %>% 
@@ -74,6 +89,7 @@ cosecha_19 %>% group_by(anio) %>%
         ggplot(mapping = aes(anio, total)) +
         geom_point() +
         geom_line() +
+        geom_smooth() +
         scale_y_continuous(labels = scales::comma)
 
 ```
@@ -99,7 +115,7 @@ tot_anual <- tot_anual %>%
                max = max(ton_MM),
                prom = mean(ton_MM))
 
-sum(tot_anual$cosechas)
+tot_anual
 ```
 
 
@@ -111,17 +127,29 @@ cosecha_19 %>% group_by(anio, prov_vin) %>%
                   cosechas = n())
 ```
 
-Cuántas provincias registran cosechas? 16
+Cuántas provincias registran cosechas?
 
 Cuántas cosechas hay por provincia?
 ```{r}
-cosecha_19 %>% filter(anio == 2018) %>% 
+prov_vin_2018 <- cosecha_19 %>% filter(anio == 2018) %>% 
         group_by(prov_vin) %>% 
-        summarise(cosechas = n()) %>% 
-        ggplot(mapping = aes(reorder(prov_vin, cosechas), cosechas)) +
-        geom_point() +
+        summarise(cosechas = n())
+
+prov_vin_2018 %>% arrange(desc(cosechas))
+```
+En 2018, Mendoza y San Juan registraron más cosechas que todas las otras provincias juntas.
+
+
+```{r}
+g <- ggplot(prov_vin_2018, mapping = aes(reorder(prov_vin, cosechas), cosechas))
+
+g + geom_segment(aes(reorder(prov_vin, cosechas), xend = prov_vin, 
+                     y = 0, yend = cosechas), 
+                 color = "grey") +
+        geom_point(aes(reorder(prov_vin, cosechas), cosechas), color = "purple", size = 3) +
         coord_flip()
 ```
+
 
 
 Cuántas toneladas se cosechan por provincia?
@@ -130,56 +158,76 @@ cosecha_19 %>% filter(anio == 2018) %>%
         group_by(anio, prov_vin) %>% 
         summarise(tot_ton_MM = sum(ton_MM)) %>% 
         ggplot(mapping = aes(reorder(prov_vin, tot_ton_MM), tot_ton_MM)) +
-        geom_point() +
+        geom_segment(aes(reorder(prov_vin, tot_ton_MM), xend = prov_vin, 
+                       y = 0, yend = tot_ton_MM), color = "grey") +
+        geom_point(color = "purple", size = 3) +
         coord_flip()
 ```
+Mendoza cosechó más toneladas que todas las otras provincias juntas en 2018.
 
-Hay 24 cosechas que no poseen provincia. Quizas tengan dpto?
+
+Hay 24 cosechas que no poseen provincia ni departamento de bodega
 
 Comparo las cosechas por provincia de bodega y de viñedo:
 ```{r}
-prov_vin <- cosecha_19 %>% group_by(prov_vin) %>% summarise(cosechas = n())
-prov_bodega <- cosecha_19 %>% group_by(prov_bodega) %>% summarise(cosechas = n())
+prov_vin <- cosecha_19 %>% group_by(anio, prov_vin) %>% summarise(cosechas = n(),
+                                                            ton = sum(ton))
+prov_bodega <- cosecha_19 %>% group_by(anio, prov_bodega) %>% summarise(cosechas = n(),
+                                                                        ton = sum(ton))
 
-prov_bodega %>% full_join(prov_vin, by = c("prov_bodega" = "prov_vin"))
+prov_bodega %>% 
+        full_join(prov_vin, by = c("anio", "prov_bodega" = "prov_vin")) %>% 
+        transmute(prov = prov_bodega,
+               cosech_bodega = cosechas.x,
+               cosech_vin = cosechas.y,
+               ton_bodega = ton.x,
+               ton_vin = ton.y) %>% 
+        mutate(dif_bod_vin = ton_bodega - ton_vin) %>% 
+        arrange(desc(dif_bod_vin))
 
 ```
 
 * Veo que hay provincias que registran más cosechas de bodegas y visceversa. Podría decirse que hay bodegas que "importan" cosechas desde otras provincias más de las que "exportan"? (y visceversa).
-* Este sería un interesante lead para seguir: impo y expo interprovincia de cosechas. 
-Ojo, puede que las cosechas no tengan destino "elaboración" y por eso no vayan a bodegas..
+* Este sería un interesante lead para seguir: impo y expo interprovincia de cosechas? 
+Ojo, puede que las cosechas no tengan destino "elaboración" y por eso no vayan a bodegas..?
+O quizas se trate de una merma de kilos propia del transporte?
+O quizas se trate de errores?
 * Todas las cosechas tienen una provincia de bodega? Quizas por eso las 24 cosechas NA
 
 Exploremos el destino de la uva..
 ```{r}
 cosecha_19 %>% group_by(destino_uva) %>% 
-        summarise(ton_MM_abs = sum(ton_MM) / 17) # dividi por 17 para tener un promedio anual
+        summarise(ton = sum(ton) / 17) # dividi por 17 para tener un promedio anual
 ```
 
-Las cosechas que tienen provincia bodega, de dònde son? No son para consumo..
+Las cosechas que NO tienen provincia bodega, de dònde son? No son para consumo..
 ```{r}
 cosecha_19 %>% filter(is.na(prov_bodega))
         
 ```
-Esto es curioso. QUizas se pueda utilizar ML para completar los NA...
+Esto es curioso. Son de varios años y la mayoría son viñedos de La Pampa.
+QUizas se pueda utilizar ML para completar los NA...
 
-Cuàntas toneladas son los que no tienen provincia bodega?
+
+Cuántas toneladas son las que no tienen provincia bodega?
 ```{r}
 cosecha_19 %>% filter(is.na(prov_bodega)) %>% 
         group_by(prov_bodega) %>% 
         summarise(sum(ton))
 ```
 
-Explore la composiciòn de:
+Hasta acá exploré la composición y cómo varían las siguentes variables:
 
 * provincia viñedo
 * provincia bodega
-* destino*
+* destino
 * año
 
-Faltaria explorar:
+Faltaria explorar la variación de:
 
 * Tipo de uva
 * variedad
 * mes
+ 
+ Luego comenzar con covarianzas...
  
