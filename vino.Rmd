@@ -1,7 +1,7 @@
 ---
 title: "Vino"
 author: "Nicolás Stumberger"
-output: github_document
+output: html_document
 date: 2020-01-30
 always_allow_html: true
 ---
@@ -18,6 +18,7 @@ Librerías
 library(tidyverse)
 library(knitr) # para crear tablas html
 library(kableExtra) # también para crear tablas html con estilo
+library(here) # para guardar outputs
 ```
 
 Importación de dataset
@@ -33,6 +34,7 @@ Cosecha_19 <- read_delim("data/Cosecha-19.csv",
 ```
 
 ## EDA:
+
 
 3 etapas iterativas:
 
@@ -82,6 +84,7 @@ cosecha_19 <-  cosecha_19 %>%
                ton_MM = ton / 1000000)
 ```
 
+### Totales
 ¿Cuánto se cosecha?
 ```{r}
 cosecha_19 %>% group_by(anio) %>% 
@@ -127,6 +130,7 @@ cosecha_19 %>% group_by(anio, prov_vin) %>%
                   cosechas = n())
 ```
 
+### Provincias
 Cuántas provincias registran cosechas?
 
 Cuántas cosechas hay por provincia?
@@ -194,6 +198,7 @@ O quizas se trate de una merma de kilos propia del transporte?
 O quizas se trate de errores?
 * Todas las cosechas tienen una provincia de bodega? Quizas por eso las 24 cosechas NA
 
+### Destino de la uva
 Exploremos el destino de la uva..
 ```{r}
 cosecha_19 %>% group_by(destino_uva) %>% 
@@ -216,6 +221,8 @@ cosecha_19 %>% filter(is.na(prov_bodega)) %>%
         summarise(sum(ton))
 ```
 
+### Repaso
+
 Hasta acá exploré la composición y cómo varían las siguentes variables:
 
 * provincia viñedo
@@ -226,8 +233,74 @@ Hasta acá exploré la composición y cómo varían las siguentes variables:
 Faltaria explorar la variación de:
 
 * Tipo de uva
+* color
 * variedad
 * mes
  
  Luego comenzar con covarianzas...
+
+### Color
+
+Esto me muestra la cantidad de cosechas por color de uva de todos los anios
+```{r}
+p <- ggplot(cosecha_19, mapping = aes(color))
+p + geom_bar() +
+        labs(title = "Total cosechas por color",
+             y = "Cosechas") +
+        scale_y_continuous(labels = scales::comma)
+```
+ 
+ Veamos 2018:
+```{r}
+p <- ggplot(filter(cosecha_19, anio == 2018), mapping = aes(color, ..prop.., group = 1))
+p + geom_bar()
+```
+ 
+ 
+ Resultado extrano...
+```{r}
+p <- ggplot(tot_anual, mapping = aes(anio, ton_MM))
+p + geom_line()
+```
+ 
+Color por ton cosechadas
+```{r}
+p <- ggplot(cosecha_19, mapping = aes(color, ton_MM))
+p + geom_bar(stat = "identity") +
+        facet_wrap(~ anio)
+```
+Se cosechan mas cantidad de rosadas que blancas??
+Si lo veo por anio solian ser mas rosadas que cualquier otro. Se empezo a revertir en 2007-2010. A partir de 2011, las tintas llevaron la delantera.
+ 
+Hay mas cosechas de blancas pero mas toneladas de rosadas...
+ 
+Promedio de ton por cosecha de cada color?
+
+### Tipo de uva
+
+ 
+```{r}
+p <- ggplot(cosecha_19, mapping = aes(tipo_uva, ..prop.., group = 1))
+p + geom_bar()
+```
+ 
+ 2/3 de las cosechas son de uvas finas
+ 
+```{r}
+p <- ggplot(cosecha_19, mapping = aes(tipo_uva, ton_MM))
+p + geom_bar(stat = "identity") +
+        facet_wrap(~ anio)
+```
+ 
+ 1,5 millones de ton son de uva finas
+ 
+### Variedad
+ 
+```{r}
+p <- ggplot(cosecha_19, mapping = aes(reorder(variedad, ton), ton))
+p + geom_point() +
+        coord_flip()
+
+```
+ 
  
