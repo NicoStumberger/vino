@@ -84,6 +84,34 @@ cosecha_19 <-  cosecha_19 %>%
                ton_MM = ton / 1000000)
 ```
 
+cómo se distribuyen las cosechas según el peso?
+```{r}
+ggplot(cosecha_19, aes(peso_quintales)) +
+        geom_histogram(aes(y =  ..density..), alpha = 0.6) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug()
+```
+
+Quitando las cosechas superiores a 1500 quintales?
+```{r}
+
+ggplot(subset(filter(cosecha_19, peso_quintales <= 1500)), aes(peso_quintales)) +
+        geom_histogram(aes(y =  ..density..), alpha = 0.6) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug()
+
+```
+
+Filtro un grupo de cosechas entre 100 mil y 250 mil quintales
+```{r}
+ggplot(subset(filter(cosecha_19, peso_quintales > 100000 & peso_quintales < 250000)), aes(peso_quintales)) +
+        geom_histogram(aes(y =  ..density..), alpha = 0.6) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug()
+```
+
+
+
 ### Totales
 ¿Cuánto se cosecha?
 ```{r}
@@ -130,6 +158,16 @@ cosecha_19 %>% group_by(anio, prov_vin) %>%
                   cosechas = n())
 ```
 
+### Año
+
+```{r}
+ggplot(cosecha_19, aes(anio)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+ 
+
+
 ### Provincias
 Cuántas provincias registran cosechas?
 
@@ -141,9 +179,24 @@ prov_vin_2018 <- cosecha_19 %>% filter(anio == 2018) %>%
 
 prov_vin_2018 %>% arrange(desc(cosechas))
 ```
+
+Provincia del viñedo:
+```{r}
+ggplot(cosecha_19, aes(prov_vin)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Provincia de la bodega:
+```{r}
+ggplot(cosecha_19, aes(prov_bodega)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+
 En 2018, Mendoza y San Juan registraron más cosechas que todas las otras provincias juntas.
-
-
 ```{r}
 g <- ggplot(prov_vin_2018, mapping = aes(reorder(prov_vin, cosechas), cosechas))
 
@@ -153,7 +206,6 @@ g + geom_segment(aes(reorder(prov_vin, cosechas), xend = prov_vin,
         geom_point(aes(reorder(prov_vin, cosechas), cosechas), color = "purple", size = 3) +
         coord_flip()
 ```
-
 
 
 Cuántas toneladas se cosechan por provincia?
@@ -204,7 +256,16 @@ O quizas se trate de errores?
 * Todas las cosechas tienen una provincia de bodega? Quizas por eso las 24 cosechas NA
 
 ### Destino de la uva
+
+```{r}
+ggplot(cosecha_19, aes(destino_uva)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
 Exploremos el destino de la uva..
+
 ```{r}
 cosecha_19 %>% group_by(destino_uva) %>% 
         summarise(ton = sum(ton) / 17) # dividi por 17 para tener un promedio anual
@@ -246,6 +307,13 @@ Luego comenzar con covarianzas...
 
 ### Color
 
+```{r}
+ggplot(cosecha_19, aes(color)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
 Esto me muestra la cantidad de cosechas por color de uva de todos los anios
 ```{r}
 p <- ggplot(cosecha_19, mapping = aes(color))
@@ -284,7 +352,14 @@ Hay mas cosechas de blancas pero mas toneladas de rosadas...
 Promedio de ton por cosecha de cada color?
 
 ### Tipo de uva
- 
+
+```{r}
+ggplot(cosecha_19, aes(tipo_uva)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
 ```{r}
 p <- ggplot(cosecha_19, mapping = aes(tipo_uva, ..prop.., group = 1))
 p + geom_bar()
@@ -301,6 +376,26 @@ p + geom_bar(stat = "identity") +
  1,5 millones de ton son de uva finas
  
 ### Variedad
+
+```{r}
+ggplot(cosecha_19, aes(variedad)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+top_var <- cosecha_19 %>% 
+        group_by(variedad) %>% 
+        summarise(n = n()) %>% 
+        filter(n > 3000)
+
+# Al usar %in% tengo que aclarar la columna en cada dataset que quiero comparar
+ggplot(subset(cosecha_19, variedad %in% top_var$variedad), aes(variedad)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
 
 177 variedades (levels)
 ```{r}
@@ -376,6 +471,13 @@ cosecha_19 %>%
 ### Mes
 
 ```{r}
+ggplot(cosecha_19, aes(mes)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+```{r}
 cosecha_19 %>% distinct(mes) %>% arrange(mes)
 ```
 
@@ -414,6 +516,8 @@ ggplot(cosecha_19, mapping = aes(mes, ton_MM)) +
  
 * En febrero hay menos registros de cosechas, pero más toneladas cosechadas...
 * No varia mucho año a año. Febrero, marzo y abril concentran las cosechas.
+
+
 
 ## Covarianzas
 
