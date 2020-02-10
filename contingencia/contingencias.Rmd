@@ -1,0 +1,56 @@
+---
+title: "Contingencias"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.width = 8, fig.height = 5)
+
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+contingencias_19 <- read_delim("data/Contingencias-19.csv",
+                               ";", escape_double = FALSE, 
+                               locale = locale(decimal_mark = ",",
+                                               grouping_mark = "."), 
+                               trim_ws = TRUE) %>% 
+        as_tibble()
+```
+
+```{r}
+str(contingencias_19)
+```
+
+```{r}
+ggplot(contingencias_19, aes(Temporada)) +
+        geom_bar()
+```
+
+```{r}
+ggplot(contingencias_19, aes(Departamento)) +
+        geom_bar()
+```
+
+```{r}
+ggplot(contingencias_19, aes(Daño)) +
+        geom_bar() +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(contingencias_19, aes(Hectarea)) +
+        geom_histogram(aes(y = ..density..), alpha = 0.5) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug() +
+        scale_x_log10(labels = scales::comma)
+```
+
