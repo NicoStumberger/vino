@@ -1,0 +1,125 @@
+---
+title: "Edad de los viñedos"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE,
+                      fig.width = 8, fig.height = 5)
+```
+
+Librerías
+```{r}
+library(tidyverse)
+library(knitr) # para crear tablas html
+library(kableExtra) # también para crear tablas html con estilo
+library(here) # para guardar outputs
+```
+
+
+```{r}
+edad_vin <- read_delim("data/Edad_viñedos-19.csv",
+                         ";", escape_double = FALSE, 
+                         col_types = cols(`Peso Quintales` = col_double()),
+                         locale = locale(date_names = "es",
+                                         decimal_mark = ",",
+                                         grouping_mark = "."), 
+                         trim_ws = TRUE) %>% 
+        as_tibble()
+```
+
+```{r}
+head(edad_vin)
+```
+
+```{r}
+str(edad_vin)
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$`Año Plantacion`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$`Estado Variedad`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$Provincia)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$Departamento)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$`Tipo Pie`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$Pie)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$`Sistema Conduccion`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$Año)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$Color)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$Variedad)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$`Tipo variedad`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(edad_vin, aes(edad_vin$`Superficie ha`)) +
+        geom_histogram(aes(y = ..density..), alpha = 0.6) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug() +
+        scale_x_log10(labels = scales::comma)
+```
+
+```{r}
+ggplot(subset(filter(edad_vin, edad_vin$`Superficie ha` <= 100)), 
+       aes(edad_vin$`Superficie ha`)) +
+        geom_histogram(aes(y = ..density..),alpha = 0.6) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug()
+```
+
+
+
