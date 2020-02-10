@@ -1,0 +1,108 @@
+---
+title: "Elaboración"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.width = 8, fig.height = 5)
+
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+elaboracion <- read_delim("data/Elaboración-19.csv",
+                          ";", escape_double = FALSE,
+                          locale = locale(date_names = "es",
+                                          decimal_mark = ",",
+                                          grouping_mark = "."),
+                          trim_ws = TRUE) %>% 
+        as_tibble()
+```
+
+```{r}
+str(elaboracion)
+```
+
+```{r}
+head(elaboracion)
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Producto)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 75, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$`Tipo Grupo`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 75, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Grupo)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 75, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Producto.Color)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 70, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Variedad.Color)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 50, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$`Tipo uva`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 50, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Variedad)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$`Provincia Bodega`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Año)) +
+        geom_bar(alpha = 0.5) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$`Tipo Establecimiento Bodega`)) +
+        geom_bar(alpha = 0.4) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(elaboracion, aes(elaboracion$Litros)) +
+        geom_histogram(aes(y = ..density..), alpha = 0.3) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug() +
+        scale_x_log10(labels = scales::comma)
+```
+
+
+
+
