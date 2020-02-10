@@ -1,0 +1,96 @@
+---
+title: "Despachos"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.width = 8, fig.height = 5)
+
+```
+
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+despachos_19 <- read_delim("data/Despachos-19.csv",
+                           ";", escape_double = FALSE, 
+                           locale = locale(decimal_mark = ",",grouping_mark = "."), 
+                           trim_ws = TRUE) %>% 
+        as_tibble()
+```
+
+```{r}
+ggplot(despachos_19, aes(Año)) +
+        geom_bar() +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(Mes)) +
+        geom_bar() +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(Tipogrupo)) +
+        geom_bar(alpha = 0.5) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(`Tipo Envase`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(Provincia)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(Departamento)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(`Cantidad hectolitros`)) +
+        geom_histogram(aes(y = ..density..), alpha = 0.5) +
+        geom_density(aes(y = ..density..), color = "blue") +
+        geom_rug() +
+        scale_x_log10(labels = scales::comma)
+```
+
+```{r}
+ggplot(despachos_19, aes(`Grupo Envase`)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(Color)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+        coord_flip()
+```
+
+```{r}
+ggplot(despachos_19, aes(`Sub Grupo Envase`)) +
+        geom_bar(alpha = 0.5) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+ggplot(despachos_19, aes(Variedad)) +
+        geom_bar(alpha = 0.6) +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
