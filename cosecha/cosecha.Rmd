@@ -1,5 +1,5 @@
 ---
-title: "Vino"
+title: "Cosechas"
 author: "Nicolás Stumberger"
 output: html_document
 date: 2020-01-30
@@ -535,9 +535,68 @@ ggplot(cosecha_19, mapping = aes(mes, ton_MM)) +
 * En febrero hay menos registros de cosechas, pero más toneladas cosechadas...
 * No varia mucho año a año. Febrero, marzo y abril concentran las cosechas.
 
-
-
 ## Covarianzas
 
+```{r}
+cosecha_19 %>% 
+        ggplot(aes(prov_vin, ton)) +
+        geom_boxplot(alpha = 0.2) +
+        scale_y_log10(labels = scales::comma) +
+        coord_flip()
+```
 
- 
+```{r}
+cosecha_19 %>% 
+        filter(!is.na(ton)) %>% 
+        ggplot(aes(prov_bodega, ton)) +
+        geom_boxplot(alpha = 0.2) +
+        scale_y_log10() +
+        coord_flip()
+```
+
+```{r}
+cosecha_19 %>% 
+        ggplot(aes(color, ton)) +
+        geom_boxplot(alpha = 0.2) +
+        scale_y_log10() +
+        coord_flip()
+```
+
+```{r}
+cosecha_19 %>% 
+        ggplot(aes(tipo_uva, ton)) +
+        geom_boxplot(alpha = 0.2) +
+        scale_y_log10() +
+        coord_flip()
+```
+
+
+```{r}
+cosecha_19 %>% 
+        ggplot(aes(factor(anio), ton)) +
+        geom_violin(alpha = 0.3) +
+        scale_y_log10() +
+        coord_flip()
+```
+
+```{r}
+cosecha_19 %>% 
+        ggplot(aes(mes, ton)) +
+        geom_boxplot(alpha = 0.2) +
+        scale_y_log10() +
+        coord_flip()
+```
+
+```{r}
+cosecha_19 %>% 
+        ggplot(aes(destino_uva, ton)) +
+        geom_boxplot(alpha = 0.2) +
+        scale_y_log10(labels = scales::comma) +
+        coord_flip()
+```
+
+```{r}
+
+```
+
+
